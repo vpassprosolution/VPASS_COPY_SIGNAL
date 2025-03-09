@@ -25,6 +25,18 @@ def subscribe():
 
     return jsonify(result), 200
 
+@app.route('/webhook', methods=['POST'])
+def receive_webhook():
+    """Receive and process webhook data."""
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "No data received"}), 400
+
+    return jsonify({"message": "Webhook received!", "data": data}), 200
+
+
+
 @app.route('/unsubscribe', methods=['POST'])
 def unsubscribe():
     """API to handle user unsubscriptions."""
