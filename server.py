@@ -36,6 +36,7 @@ def unsubscribe():
 
 import os
 
-port = int(os.environ.get("PORT", 5000))  # Use Railway's PORT, default to 5000 locally
+port = int(os.environ.get("PORT", 8080))  # Use Railway's PORT, default to 8080
 app.run(host='0.0.0.0', port=port)
+
 
