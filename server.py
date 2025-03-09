@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from database import add_subscription, remove_subscription, get_subscriptions
 
 app = Flask(__name__)
 
@@ -8,37 +9,53 @@ def home():
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
+    """API to handle user subscriptions."""
     data = request.json
     user_id = data.get("user_id")
-    group_id = data.get("group_id")
+    group_link = data.get("group_link")
     signal_format = data.get("signal_format")
 
-    if not user_id or not group_id or not signal_format:
+    if not user_id or not group_link or not signal_format:
         return jsonify({"error": "Missing required parameters"}), 400
 
-    from database import add_subscription
-    add_subscription(user_id, group_id, signal_format)
+    result = add_subscription(user_id, group_link, signal_format)
 
-    return jsonify({"message": f"User {user_id} subscribed to {group_id} for {signal_format} signals."})
+    if "error" in result:
+        return jsonify(result), 400
+
+    return jsonify(result), 200
 
 @app.route('/unsubscribe', methods=['POST'])
 def unsubscribe():
+    """API to handle user unsubscriptions."""
+    data = request.json
+    user_id = data.get("user_id")
+    group_id = data.get("group_id")
+
+    if not user_id or not group_id:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    result = remove_subscription(user_id, group_id)
+    return jsonify(result), 200
+
+@app.route('/get_subscriptions', methods=['POST'])
+def get_user_subscriptions():
+    """API to return all subscribed groups for a user."""
     data = request.json
     user_id = data.get("user_id")
 
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
 
-    from database import remove_subscription
-    remove_subscription(user_id)
+    subscriptions = get_subscriptions(user_id)
 
-    return jsonify({"message": f"User {user_id} unsubscribed successfully."})
+    if not subscriptions:
+        return jsonify({"message": "No active subscriptions"}), 200
 
-import os
+    return jsonify({"subscriptions": subscriptions}), 200
 
 import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))  # Use Railway's assigned PORT
     app.run(host='0.0.0.0', port=port)
-
