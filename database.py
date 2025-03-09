@@ -10,7 +10,7 @@ def connect_db():
 
 def extract_group_id(group_link):
     """Extracts the group_id from the provided group link."""
-    match = re.search(r"(?:t\.me\/|joinchat\/|+)([\w\d_-]+)", group_link)
+    match = re.search(r"(?:t\.me\/|joinchat\/)([\w\d_-]+)", group_link)
     return match.group(1) if match else None  # Return None if no valid group_id found
 
 def add_subscription(user_id, group_link, signal_format):
