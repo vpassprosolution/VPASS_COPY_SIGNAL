@@ -10,10 +10,8 @@ def connect_db():
 
 def extract_group_id(group_link):
     """Extracts the group_id from the provided group link."""
-    match = re.search(r"t\.me/([\w\d_]+)", group_link)
-    if match:
-        return match.group(1)  # Extract the group_id
-    return None  # Return None if no valid group_id found
+    match = re.search(r"(?:t\.me\/|joinchat\/|+)([\w\d_-]+)", group_link)
+    return match.group(1) if match else None  # Return None if no valid group_id found
 
 def add_subscription(user_id, group_link, signal_format):
     """Adds a new subscription for the user."""
@@ -32,11 +30,12 @@ def add_subscription(user_id, group_link, signal_format):
         if count >= 3:
             return {"error": "You can only subscribe to a maximum of 3 groups. Please remove one before adding another."}
 
-        # Insert the new subscription
+        # Insert the new subscription or update signal_format if already subscribed
         cur.execute("""
             INSERT INTO subscriptions (user_id, group_id, group_link, signal_format)
             VALUES (%s, %s, %s, %s)
-            ON CONFLICT (user_id, group_id) DO NOTHING;
+            ON CONFLICT (user_id, group_id) 
+            DO UPDATE SET signal_format = EXCLUDED.signal_format;
         """, (user_id, group_id, group_link, signal_format))
 
         conn.commit()
